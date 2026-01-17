@@ -15,11 +15,11 @@ int main(void) {
     char inputChar;
     bool isCorrectGuess = false;
     char guessedLetters[30] = {0};
-    bool isFirstTurn = true;
-    int guessedCount = 1;
+    int guessedCount = 0;
     int missingCount = 0;
     bool isRepeated = false;
     int i;
+    int len;
 
     fp = fopen("text.txt", "r");
 
@@ -47,6 +47,11 @@ int main(void) {
         }
 
         fscanf(fp, " %[^\n]", secretWord);
+
+        len = strlen(secretWord);
+        guessedLetters[0] = secretWord[0];
+        guessedLetters[1] = secretWord[len - 1];
+        guessedCount = 2;
 
         do {
             isCorrectGuess = false;
@@ -146,83 +151,57 @@ int main(void) {
                 default:
                     printf("CRITICAL ERROR!!");
                     return 1;
-                    break;
             }
 
             printf("Lives: %d \n\n", lives);
             missingCount = 0;
 
-            if (isFirstTurn) {
-                printf("%c ", secretWord[0]);
-                for (i = 1; i < strlen(secretWord)-1; i++) {
+            printf("%c ", secretWord[0]);
+            for (i = 1; i < len - 1; i++) {
+                if (strchr(guessedLetters, secretWord[i]) != NULL) {
+                    printf("%c ", secretWord[i]);
+                }
+                else {
                     printf("_ ");
                     missingCount++;
                 }
-                printf("%c \n\n", secretWord[strlen(secretWord)-1]);
+            }
+            printf("%c \n\n", secretWord[len - 1]);
 
+            if (missingCount == 0) {
+                printf("\nYOU WON!!!");
+                fclose(fp);
+                return 0;
+            }
+
+            isRepeated = false;
+            do {
                 printf("Choose a letter: ");
                 scanf(" %c", &inputChar);
-                guessedLetters[0] = inputChar;
-                for (i = 1; i < strlen(secretWord); i++) {
-                    if (secretWord[i] == inputChar) {
-                        isCorrectGuess = true;
-                    }
-                }
-                if (isCorrectGuess) {
-                    printf("The letter '%c' is in the word!", inputChar);
+                if (strchr(guessedLetters, inputChar) != NULL) {
+                    isRepeated = true;
+                    printf("You already chose the letter: %c \n", inputChar);
                 }
                 else {
-                    printf("The letter '%c' is NOT in the word!", inputChar);
-                    lives--;
+                    isRepeated = false;
                 }
-                isFirstTurn = false;
+            } while (isRepeated);
+
+            guessedLetters[guessedCount] = inputChar;
+            guessedCount++;
+
+            for (i = 1; i < len - 1; i++) {
+                if (secretWord[i] == inputChar) {
+                    isCorrectGuess = true;
+                }
+            }
+
+            if (isCorrectGuess) {
+                printf("The letter '%c' is in the word!", inputChar);
             }
             else {
-                printf("%c ", secretWord[0]);
-                for (i = 1; i < strlen(secretWord)-1; i++) {
-                    if (strchr(guessedLetters, secretWord[i]) != NULL) {
-                        printf("%c ", secretWord[i]);
-                    }
-                    else {
-                        printf("_ ");
-                        missingCount++;
-                    }
-                }
-                printf("%c \n\n", secretWord[strlen(secretWord)-1]);
-
-                if (missingCount == 0) {
-                    printf("\nYOU WON!!!");
-                    return 0;
-                }
-
-                isRepeated = false;
-                do {
-                    printf("Choose a letter: ");
-                    scanf(" %c", &inputChar);
-                    if (strchr(guessedLetters, inputChar) != NULL) {
-                        isRepeated = true;
-                        printf("You already chose the letter: %c \n", inputChar);
-                    }
-                    else {
-                        isRepeated = false;
-                    }
-                } while (isRepeated);
-
-                guessedLetters[guessedCount] = inputChar;
-                guessedCount++;
-
-                for (i = 1; i < strlen(secretWord); i++) {
-                    if (secretWord[i] == inputChar) {
-                        isCorrectGuess = true;
-                    }
-                }
-                if (isCorrectGuess) {
-                    printf("The letter '%c' is in the word!", inputChar);
-                }
-                else {
-                    printf("The letter '%c' is NOT in the word!", inputChar);
-                    lives--;
-                }
+                printf("The letter '%c' is NOT in the word!", inputChar);
+                lives--;
             }
 
             if (lives <= 0) {
